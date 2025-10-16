@@ -62,8 +62,29 @@ python3 cli.py
 
 [View Full Documentation](./day1/README.md) | [Quick Start Guide](./day1/QUICKSTART.md)
 
-### Day 2: Agent Frameworks & Document QA
-**Status:** Coming soon
+### ✅ Day 2: Agent Frameworks & Document QA
+**Status:** Completed 🎉
+
+An intelligent document Q&A agent with vector-based semantic search capabilities.
+
+**What's Included:**
+- 📄 Advanced document processing with PDF support
+- 🔍 Vector-based semantic search using FAISS
+- 💬 Interactive document Q&A with context-aware responses
+- 🎨 Beautiful CLI interface for document queries
+- 🧠 LLM-powered answer generation (OpenAI integration)
+- 💾 Persistent vector store for efficient retrieval
+- 🔧 Modular architecture (document processor, vector store manager, agent)
+- ✅ Test suite and installation verification
+- 📖 Comprehensive documentation
+
+**Quick Start:**
+```bash
+cd day2
+python3 cli.py
+```
+
+[View Full Documentation](./day2/README.md) | [Quick Start Guide](./day2/QUICKSTART.md)
 
 ### Day 3: Workflow Automation & API Integration
 **Status:** Coming soon
