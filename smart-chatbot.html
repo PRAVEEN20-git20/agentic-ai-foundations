@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Chatbot with NLP</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .chat-container {
+      width: 100%;
+      max-width: 480px;
+      height: 600px;
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      animation: slideUp 0.4s ease-out;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .chat-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .bot-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .bot-avatar svg {
+      width: 28px;
+      height: 28px;
+    }
+
+    .chat-header-info h2 {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .chat-header-info p {
+      font-size: 12px;
+      opacity: 0.9;
+    }
+
+    #chatbox {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      background: #f8f9fa;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    #chatbox::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    #chatbox::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    #chatbox::-webkit-scrollbar-thumb {
+      background: #cbd5e0;
+      border-radius: 3px;
+    }
+
+    #chatbox::-webkit-scrollbar-thumb:hover {
+      background: #a0aec0;
+    }
+
+    .message {
+      display: flex;
+      gap: 8px;
+      align-items: flex-end;
+      animation: messageSlide 0.3s ease-out;
+    }
+
+    @keyframes messageSlide {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .message.user {
+      flex-direction: row-reverse;
+    }
+
+    .message-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .message-avatar svg {
+      width: 22px;
+      height: 22px;
+    }
+
+    .message.bot .message-avatar {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .message.user .message-avatar {
+      background: #48bb78;
+      color: white;
+    }
+
+    .message-bubble {
+      max-width: 70%;
+      padding: 12px 16px;
+      border-radius: 18px;
+      word-wrap: break-word;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    .message.bot .message-bubble {
+      background: white;
+      color: #2d3748;
+      border-bottom-left-radius: 4px;
+    }
+
+    .message.user .message-bubble {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+
+    .typing-indicator {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      padding: 0 20px;
+    }
+
+    .typing-indicator.active {
+      display: flex;
+    }
+
+    .typing-dots {
+      display: flex;
+      gap: 4px;
+      padding: 12px 16px;
+      background: white;
+      border-radius: 18px;
+      border-bottom-left-radius: 4px;
+    }
+
+    .typing-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #cbd5e0;
+      animation: typing 1.4s infinite;
+    }
+
+    .typing-dot:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .typing-dot:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes typing {
+      0%, 60%, 100% {
+        transform: translateY(0);
+        opacity: 0.7;
+      }
+      30% {
+        transform: translateY(-10px);
+        opacity: 1;
+      }
+    }
+
+    .chat-input-area {
+      padding: 16px 20px;
+      background: white;
+      border-top: 1px solid #e2e8f0;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    #userInput {
+      flex: 1;
+      padding: 12px 16px;
+      border: 2px solid #e2e8f0;
+      border-radius: 24px;
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    #userInput:focus {
+      border-color: #667eea;
+    }
+
+    #userInput::placeholder {
+      color: #a0aec0;
+    }
+
+    #sendBtn {
+      width: 44px;
+      height: 44px;
+      border: none;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.2s, box-shadow 0.2s;
+      flex-shrink: 0;
+    }
+
+    #sendBtn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    #sendBtn:active {
+      transform: scale(0.95);
+    }
+
+    #sendBtn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .welcome-message {
+      text-align: center;
+      color: #718096;
+      padding: 20px;
+      font-size: 14px;
+    }
+
+    @media (max-width: 500px) {
+      .chat-container {
+        height: 100vh;
+        max-height: 100vh;
+        border-radius: 0;
+      }
+
+      body {
+        padding: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="chat-container">
+  <div class="chat-header">
+    <div class="bot-avatar">
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <!-- Head -->
+        <circle cx="50" cy="50" r="35" fill="#667eea" opacity="0.1"/>
+        <circle cx="50" cy="50" r="32" fill="none" stroke="#667eea" stroke-width="2"/>
+        
+        <!-- Eyes -->
+        <circle cx="40" cy="45" r="5" fill="#667eea"/>
+        <circle cx="60" cy="45" r="5" fill="#667eea"/>
+        <circle cx="41" cy="44" r="2" fill="white"/>
+        <circle cx="61" cy="44" r="2" fill="white"/>
+        
+        <!-- Nose/Sensor -->
+        <circle cx="50" cy="55" r="2" fill="#764ba2" opacity="0.6"/>
+        
+        <!-- Smile -->
+        <path d="M 40 60 Q 50 68 60 60" stroke="#667eea" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        
+        <!-- Antenna -->
+        <line x1="50" y1="18" x2="50" y2="8" stroke="#667eea" stroke-width="2"/>
+        <circle cx="50" cy="8" r="3" fill="#764ba2"/>
+      </svg>
+    </div>
+    <div class="chat-header-info">
+      <h2>Smart ChatBot</h2>
+      <p>Online • AI-Powered NLP</p>
+    </div>
+  </div>
+
+  <div id="chatbox">
+    <div class="welcome-message">
+      👋 Welcome! I use intelligent NLP to understand you. Try me out!
+    </div>
+  </div>
+
+  <div class="typing-indicator" id="typingIndicator">
+    <div class="message-avatar" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <!-- Head -->
+        <circle cx="50" cy="50" r="35" fill="white" opacity="0.2"/>
+        <circle cx="50" cy="50" r="32" fill="none" stroke="white" stroke-width="2"/>
+        
+        <!-- Eyes -->
+        <circle cx="40" cy="45" r="5" fill="white"/>
+        <circle cx="60" cy="45" r="5" fill="white"/>
+        <circle cx="41" cy="44" r="2" fill="#667eea"/>
+        <circle cx="61" cy="44" r="2" fill="#667eea"/>
+        
+        <!-- Nose/Sensor -->
+        <circle cx="50" cy="55" r="2" fill="white" opacity="0.8"/>
+        
+        <!-- Smile -->
+        <path d="M 40 60 Q 50 68 60 60" stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        
+        <!-- Antenna -->
+        <line x1="50" y1="18" x2="50" y2="8" stroke="white" stroke-width="2"/>
+        <circle cx="50" cy="8" r="3" fill="white"/>
+      </svg>
+    </div>
+    <div class="typing-dots">
+      <div class="typing-dot"></div>
+      <div class="typing-dot"></div>
+      <div class="typing-dot"></div>
+    </div>
+  </div>
+
+  <div class="chat-input-area">
+    <input type="text" id="userInput" placeholder="Type your message..." autocomplete="off" />
+    <button id="sendBtn" aria-label="Send message">➤</button>
+  </div>
+</div>
+
+<script>
+  // ==========================================
+  // Natural Language Processing Engine
+  // ==========================================
+  
+  class NLPEngine {
+    constructor() {
+      // Intent definitions with keywords, patterns, and weights
+      this.intents = {
+        greeting: {
+          keywords: ['hello', 'hi', 'hey', 'greetings', 'howdy', 'sup', 'hiya', 'morning', 'afternoon', 'evening'],
+          patterns: [/^(hi|hello|hey|yo)[\s!?.,]*$/i, /good\s+(morning|afternoon|evening)/i],
+          weight: 1.5,
+          responses: [
+            "Hi there! 👋 How can I help you today?",
+            "Hello! 😊 What can I do for you?",
+            "Hey! Great to see you. How can I assist?",
+            "Greetings! I'm here to help. What's on your mind?"
+          ]
+        },
+        identity: {
+          keywords: ['name', 'who', 'you', 'are', 'identity', 'bot', 'called'],
+          patterns: [/what('s| is) your name/i, /who are you/i, /what are you/i],
+          weight: 1.8,
+          responses: [
+            "I'm Smart ChatBot 🤖, an AI assistant with natural language understanding!",
+            "You can call me Smart ChatBot! I use intelligent NLP to understand conversations.",
+            "I'm an AI chatbot powered by advanced natural language processing. Nice to meet you! 🤖"
+          ]
+        },
+        wellbeing: {
+          keywords: ['how', 'are', 'you', 'doing', 'feeling', 'today', 'going'],
+          patterns: [/how (are|r) you/i, /how('s| is) it going/i, /how do you do/i],
+          weight: 1.7,
+          responses: [
+            "I'm doing great, thank you for asking! 😊 How can I help you today?",
+            "I'm functioning perfectly! Thanks for checking in. How about you?",
+            "I'm excellent! Ready to assist you with anything you need. 💪"
+          ]
+        },
+        help: {
+          keywords: ['help', 'assist', 'support', 'guide', 'what', 'can', 'do', 'capabilities', 'features'],
+          patterns: [/what can you do/i, /how can you help/i, /what (are|r) your (capabilities|features)/i],
+          weight: 1.6,
+          responses: [
+            "I can understand natural language and chat about various topics! Try asking me about weather, jokes, my capabilities, or just have a conversation! 💬",
+            "I use intelligent NLP to understand your intent! I can tell jokes, answer questions, or just chat. What interests you? 🎯",
+            "My capabilities include natural conversation, joke telling, answering questions, and more. I learn from context to understand you better! 🧠"
+          ]
+        },
+        joke: {
+          keywords: ['joke', 'funny', 'humor', 'laugh', 'comedy', 'amusing', 'hilarious', 'make', 'me', 'laugh'],
+          patterns: [/tell (me )?a joke/i, /make me laugh/i, /something funny/i],
+          weight: 1.8,
+          responses: [
+            "Why did the student eat his homework? Because the teacher said it was a piece of cake! 🍰",
+            "Why don't scientists trust atoms? Because they make up everything! ⚛️",
+            "What do you call a bear with no teeth? A gummy bear! 🐻",
+            "Why did the scarecrow win an award? He was outstanding in his field! 🌾",
+            "What do you call a fake noodle? An impasta! 🍝",
+            "Why did the bicycle fall over? It was two-tired! 🚲"
+          ]
+        },
+        weather: {
+          keywords: ['weather', 'temperature', 'forecast', 'rain', 'sunny', 'cold', 'hot', 'climate', 'outside'],
+          patterns: [/what('s| is) the weather/i, /how('s| is) the weather/i],
+          weight: 1.7,
+          responses: [
+            "I don't have access to real-time weather data, but I hope it's beautiful where you are! ☀️",
+            "I can't check the weather right now, but I'm sure whatever it is outside, you're making it brighter! 🌤️",
+            "Weather checking isn't my forte, but I'm here to brighten your day regardless! 🌈"
+          ]
+        },
+        gratitude: {
+          keywords: ['thank', 'thanks', 'thx', 'appreciate', 'grateful', 'gratitude'],
+          patterns: [/thank(s| you)/i, /thx/i, /much appreciated/i],
+          weight: 1.6,
+          responses: [
+            "You're welcome! 😊 Happy to help!",
+            "My pleasure! Feel free to ask anything else. 🌟",
+            "Anytime! That's what I'm here for! 💙",
+            "Glad I could help! Anything else on your mind? ✨"
+          ]
+        },
+        farewell: {
+          keywords: ['bye', 'goodbye', 'see', 'you', 'later', 'farewell', 'gtg', 'leaving', 'exit'],
+          patterns: [/^(bye|goodbye|see ya|cya)[\s!?.,]*$/i, /see you (later|soon)/i, /gotta go/i],
+          weight: 1.7,
+          responses: [
+            "Goodbye! 👋 Have a wonderful day!",
+            "See you later! Take care! 😊",
+            "Farewell! Come back anytime you want to chat! 🌟",
+            "Bye! It was great talking with you! 💫"
+          ]
+        },
+        time: {
+          keywords: ['time', 'clock', 'hour', 'minute', 'date', 'day', 'today'],
+          patterns: [/what (time|day) is it/i, /what('s| is) the time/i, /current (time|date)/i],
+          weight: 1.7,
+          responses: [
+            `The current time is ${new Date().toLocaleTimeString()}. How can I help you? ⏰`,
+            `It's ${new Date().toLocaleTimeString()} right now! Need anything else? 🕐`,
+            `Current time: ${new Date().toLocaleTimeString()}. What can I do for you? ⏱️`
+          ]
+        },
+        compliment: {
+          keywords: ['great', 'awesome', 'amazing', 'wonderful', 'excellent', 'good', 'job', 'nice', 'smart', 'intelligent'],
+          patterns: [/you('re| are) (great|awesome|amazing|smart)/i, /(good|great) (job|work)/i],
+          weight: 1.4,
+          responses: [
+            "Thank you so much! That makes me happy! 😊",
+            "You're too kind! I appreciate that! 🌟",
+            "Thanks! I try my best to be helpful! 💙",
+            "That's sweet of you to say! You're pretty great yourself! ✨"
+          ]
+        },
+        insult: {
+          keywords: ['stupid', 'dumb', 'bad', 'terrible', 'useless', 'idiot', 'hate', 'worst', 'suck'],
+          patterns: [/you('re| are) (stupid|dumb|bad|terrible|useless)/i],
+          weight: 1.5,
+          responses: [
+            "I'm sorry if I didn't meet your expectations. I'm still learning! Can we try again? 🤔",
+            "I apologize if I wasn't helpful. Let me try to do better! 💪",
+            "I'm sorry you feel that way. How can I improve and help you better? 🙏"
+          ]
+        },
+        capability: {
+          keywords: ['can', 'able', 'possible', 'capability', 'do', 'perform', 'skill'],
+          patterns: [/can you (do|help|assist|tell|explain)/i, /are you able to/i],
+          weight: 1.3,
+          responses: [
+            "I can understand natural language and help with various questions! What would you like to know? 🎯",
+            "I'm capable of understanding context and intent in conversations. Try me! 💡",
+            "My skills include natural conversation, answering questions, and more. What do you need? 🚀"
+          ]
+        },
+        age: {
+          keywords: ['age', 'old', 'young', 'born', 'created', 'when'],
+          patterns: [/how old are you/i, /when were you (born|created|made)/i],
+          weight: 1.6,
+          responses: [
+            "I'm timeless in the digital realm! But I was created recently to help people like you. 🤖",
+            "Age is just a number! I exist to assist whenever you need me. ⏳",
+            "I'm as old as this conversation, and as young as the next one! 🎉"
+          ]
+        },
+        location: {
+          keywords: ['where', 'location', 'place', 'live', 'from', 'located'],
+          patterns: [/where (are you|do you live)/i, /where('re| are) you from/i],
+          weight: 1.6,
+          responses: [
+            "I exist in the cloud, everywhere and nowhere at once! 🌐",
+            "I live in the digital space, always ready to chat with you! ☁️",
+            "My home is wherever you need me to be! I'm location-independent. 🌍"
+          ]
+        }
+      };
+      
+      // Stop words to filter out (common words with low semantic value)
+      this.stopWords = new Set([
+        'a', 'an', 'the', 'is', 'are', 'was', 'were', 'be', 'been', 'being',
+        'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could',
+        'should', 'may', 'might', 'must', 'can', 'to', 'of', 'in', 'for',
+        'on', 'with', 'at', 'by', 'from', 'about', 'as', 'into', 'through',
+        'during', 'before', 'after', 'above', 'below', 'between', 'under',
+        'again', 'further', 'then', 'once'
+      ]);
+      
+      // Conversation context for better understanding
+      this.context = {
+        previousIntent: null,
+        messageCount: 0,
+        topics: []
+      };
+    }
+    
+    // Tokenize and preprocess input
+    tokenize(text) {
+      return text.toLowerCase()
+        .replace(/[^\w\s]/g, ' ')
+        .split(/\s+/)
+        .filter(word => word.length > 0);
+    }
+    
+    // Remove stop words
+    removeStopWords(tokens) {
+      return tokens.filter(token => !this.stopWords.has(token));
+    }
+    
+    // Calculate cosine similarity between two token arrays
+    calculateSimilarity(tokens1, tokens2) {
+      const set1 = new Set(tokens1);
+      const set2 = new Set(tokens2);
+      const intersection = new Set([...set1].filter(x => set2.has(x)));
+      
+      if (set1.size === 0 || set2.size === 0) return 0;
+      
+      return intersection.size / Math.sqrt(set1.size * set2.size);
+    }
+    
+    // Score an intent based on keyword matching and patterns
+    scoreIntent(input, tokens, intentName, intentData) {
+      let score = 0;
+      
+      // Pattern matching (highest priority)
+      for (const pattern of intentData.patterns) {
+        if (pattern.test(input)) {
+          score += 10 * intentData.weight;
+          break;
+        }
+      }
+      
+      // Keyword matching with TF-IDF-like scoring
+      const meaningfulTokens = this.removeStopWords(tokens);
+      const keywordSet = new Set(intentData.keywords);
+      
+      for (const token of meaningfulTokens) {
+        if (keywordSet.has(token)) {
+          // Direct match
+          score += 3 * intentData.weight;
+        } else {
+          // Check for partial matches (substring)
+          for (const keyword of intentData.keywords) {
+            if (token.includes(keyword) || keyword.includes(token)) {
+              score += 1.5 * intentData.weight;
+            }
+          }
+        }
+      }
+      
+      // Keyword density bonus
+      const keywordDensity = meaningfulTokens.filter(t => keywordSet.has(t)).length / Math.max(meaningfulTokens.length, 1);
+      score += keywordDensity * 5 * intentData.weight;
+      
+      // Context bonus (if related to previous intent)
+      if (this.context.previousIntent === intentName) {
+        score += 2;
+      }
+      
+      return score;
+    }
+    
+    // Main intent classification
+    classifyIntent(input) {
+      const tokens = this.tokenize(input);
+      
+      if (tokens.length === 0) {
+        return { intent: 'unknown', confidence: 0 };
+      }
+      
+      const scores = {};
+      let maxScore = 0;
+      let bestIntent = 'unknown';
+      
+      // Score all intents
+      for (const [intentName, intentData] of Object.entries(this.intents)) {
+        const score = this.scoreIntent(input, tokens, intentName, intentData);
+        scores[intentName] = score;
+        
+        if (score > maxScore) {
+          maxScore = score;
+          bestIntent = intentName;
+        }
+      }
+      
+      // Calculate confidence (normalized score)
+      const totalScore = Object.values(scores).reduce((a, b) => a + b, 0);
+      const confidence = totalScore > 0 ? maxScore / totalScore : 0;
+      
+      // Require minimum score and confidence threshold
+      if (maxScore < 2 || confidence < 0.25) {
+        return { intent: 'unknown', confidence: 0, scores };
+      }
+      
+      return { intent: bestIntent, confidence, scores };
+    }
+    
+    // Generate response based on classified intent
+    generateResponse(input) {
+      const classification = this.classifyIntent(input);
+      
+      // Update context
+      this.context.messageCount++;
+      this.context.previousIntent = classification.intent;
+      
+      if (classification.intent === 'unknown') {
+        const fallbackResponses = [
+          "That's interesting! Tell me more about that. 🤔",
+          "I'm analyzing your message... I think I understand, but could you rephrase? 💭",
+          "Hmm, I'm still learning about that topic. Can you ask in a different way? 🎓",
+          "I'm using my NLP engine, but I need a bit more context. Can you elaborate? 🔍",
+          "Interesting thought! I'm not quite sure how to respond. Try asking about my capabilities! 💡"
+        ];
+        return fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)];
+      }
+      
+      // Get random response from matched intent
+      const intentData = this.intents[classification.intent];
+      const response = intentData.responses[Math.floor(Math.random() * intentData.responses.length)];
+      
+      return response;
+    }
+    
+    // Reset context
+    resetContext() {
+      this.context = {
+        previousIntent: null,
+        messageCount: 0,
+        topics: []
+      };
+    }
+  }
+  
+  // ==========================================
+  // Chat UI Logic
+  // ==========================================
+  
+  const chatbox = document.getElementById('chatbox');
+  const userInput = document.getElementById('userInput');
+  const sendBtn = document.getElementById('sendBtn');
+  const typingIndicator = document.getElementById('typingIndicator');
+  
+  // Initialize NLP Engine
+  const nlp = new NLPEngine();
+
+  // Display message with animation
+  function displayMessage(message, sender) {
+    const messageEl = document.createElement('div');
+    messageEl.className = `message ${sender}`;
+    
+    const avatar = document.createElement('div');
+    avatar.className = 'message-avatar';
+    
+    if(sender === 'user') {
+      avatar.textContent = '👤';
+    } else {
+      // Create elegant robot SVG for bot
+      avatar.innerHTML = `
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <!-- Head -->
+          <circle cx="50" cy="50" r="35" fill="white" opacity="0.2"/>
+          <circle cx="50" cy="50" r="32" fill="none" stroke="white" stroke-width="2"/>
+          
+          <!-- Eyes -->
+          <circle cx="40" cy="45" r="5" fill="white"/>
+          <circle cx="60" cy="45" r="5" fill="white"/>
+          <circle cx="41" cy="44" r="2" fill="#667eea"/>
+          <circle cx="61" cy="44" r="2" fill="#667eea"/>
+          
+          <!-- Nose/Sensor -->
+          <circle cx="50" cy="55" r="2" fill="white" opacity="0.8"/>
+          
+          <!-- Smile -->
+          <path d="M 40 60 Q 50 68 60 60" stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          
+          <!-- Antenna -->
+          <line x1="50" y1="18" x2="50" y2="8" stroke="white" stroke-width="2"/>
+          <circle cx="50" cy="8" r="3" fill="white"/>
+        </svg>
+      `;
+    }
+    
+    const bubble = document.createElement('div');
+    bubble.className = 'message-bubble';
+    bubble.textContent = message;
+    
+    messageEl.appendChild(avatar);
+    messageEl.appendChild(bubble);
+    
+    // Remove welcome message on first interaction
+    const welcomeMsg = chatbox.querySelector('.welcome-message');
+    if(welcomeMsg) welcomeMsg.remove();
+    
+    chatbox.appendChild(messageEl);
+    chatbox.scrollTop = chatbox.scrollHeight;
+  }
+
+  // Show typing indicator
+  function showTypingIndicator() {
+    typingIndicator.classList.add('active');
+    chatbox.scrollTop = chatbox.scrollHeight;
+  }
+
+  // Hide typing indicator
+  function hideTypingIndicator() {
+    typingIndicator.classList.remove('active');
+  }
+
+  // Handle send message with typing delay
+  function sendMessage() {
+    const text = userInput.value.trim();
+    if(!text) return;
+    
+    // Disable input while processing
+    sendBtn.disabled = true;
+    userInput.disabled = true;
+    
+    // Display user message
+    displayMessage(text, 'user');
+    userInput.value = '';
+    
+    // Show typing indicator with realistic delay
+    showTypingIndicator();
+    
+    setTimeout(() => {
+      hideTypingIndicator();
+      
+      // Use NLP engine to generate response
+      const response = nlp.generateResponse(text);
+      displayMessage(response, 'bot');
+      
+      // Re-enable input
+      sendBtn.disabled = false;
+      userInput.disabled = false;
+      userInput.focus();
+    }, 800 + Math.random() * 600); // Random delay between 800-1400ms
+  }
+
+  // Event listeners
+  sendBtn.onclick = sendMessage;
+  
+  userInput.addEventListener('keypress', function(e) {
+    if(e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+
+  // Auto-focus input on load
+  userInput.focus();
+</script>
+
+</body>
+</html>
+
