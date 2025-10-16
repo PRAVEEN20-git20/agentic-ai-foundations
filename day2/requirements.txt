@@ -1,0 +1,21 @@
+# Document Q&A Agent - Python Dependencies
+# Python 3.8+ required
+
+# Core dependencies
+openai==1.12.0
+PyPDF2==3.0.1
+faiss-cpu==1.7.4
+numpy==1.24.3
+
+# Optional: Enhanced functionality
+python-dotenv==1.0.0
+langchain==0.1.10
+langchain-openai==0.0.5
+
+# Development and testing dependencies (optional)
+# pytest==8.0.0
+# pytest-cov==4.1.0
+# black==24.1.1
+# flake8==7.0.0
+# mypy==1.8.0
+
