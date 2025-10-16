@@ -1,0 +1,18 @@
+# Hello Advisor Agent - Python Dependencies
+# Python 3.8+ required
+
+# Core dependencies (none required for basic version)
+# All functionality uses Python standard library
+
+# Optional: For future LLM integration
+# openai==1.12.0
+# anthropic==0.18.1
+# python-dotenv==1.0.0
+
+# Development and testing dependencies (optional)
+# pytest==8.0.0
+# pytest-cov==4.1.0
+# black==24.1.1
+# flake8==7.0.0
+# mypy==1.8.0
+
